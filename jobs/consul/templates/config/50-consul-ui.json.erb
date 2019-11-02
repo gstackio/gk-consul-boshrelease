@@ -1,0 +1,25 @@
+<%
+    require "json"
+
+    config = {}
+
+    if p("ui.enable")
+        config = config.merge({
+            # Here we follow the official guide for configuring the Consul UI
+            # with TLS.
+            #
+            # See also: https://learn.hashicorp.com/consul/security-networking/certificates#configuring-the-consul-ui-for-https
+            ui: true,
+            client_addr: "0.0.0.0",
+            enable_script_checks: false,
+            disable_remote_exec: true,
+            enable_local_script_checks: true,
+        })
+
+        if p("tls.enable")
+            config[:verify_incoming] = false
+            config[:verify_incoming_rpc] = true
+        end
+    end
+-%>
+<%= JSON.pretty_generate(config) %>

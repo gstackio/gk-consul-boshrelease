@@ -10,11 +10,40 @@ instance_groups:
         release: gk-consul
         provides:
           consul: { as: consul-servers }
+          consul-address: { as: consul-server-address }
+        consumes:
+          consul-servers: { from: consul-servers }
         properties:
           server: true
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_agent_tls))
+            enforce_mutual_tls: true
+      - name: bpm
+        release: bpm
+    persistent_disk_type: default
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
+  - name: consul-ui
+    instances: 2
+    azs: [z1]
+    jobs:
+      - name: consul
+        release: gk-consul
+        provides:
+          consul-address: { as: consul-ui-address }
+        consumes:
+          consul-servers: { from: consul-servers }
+        properties:
+          server: true
+          ui:
+            enable: true
+          encrypt: ((consul_encrypt_key))
+          tls:
+            cert: ((consul_ui_tls))
             enforce_mutual_tls: true
       - name: bpm
         release: bpm
@@ -44,7 +73,19 @@ variables:
         - "127.0.0.1"
         - "server.dc1.consul"
     consumes:
-      alternative_name: { from: consul-address }
+      alternative_name: { from: consul-server-address }
+    update_mode: converge
+  - name: consul_ui_tls
+    type: certificate
+    options:
+      ca: consul_ca
+      common_name: consul-ui.((network_name)).((deployment_name)).bosh
+      alternative_names:
+        - "*.consul-ui.((network_name)).((deployment_name)).bosh"
+        - "127.0.0.1"
+        - "server.dc1.consul"
+    consumes:
+      alternative_name: { from: consul-ui-address }
     update_mode: converge
 
 features:
@@ -60,6 +101,9 @@ update:
   canary_watch_time: 1000-60000
   update_watch_time: 1000-60000
   max_in_flight: 1
+  # NOTE: with 5 nodes, we can cope with 2 nodes being down at the same time,
+  # so 'serial: false' is OK. But in production, 'serial: true' should be
+  # considered for more safety.
   serial: false
 
 releases:

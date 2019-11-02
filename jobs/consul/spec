@@ -10,6 +10,7 @@ templates:
   config/20-server.json.erb: config/20-server.json
   config/30-bosh-integration.json.erb: config/30-bosh-integration.json
   config/40-service-discovery.json.erb: config/40-service-discovery.json
+  config/50-consul-ui.json.erb: config/50-consul-ui.json
   dns/handlers.json.erb: dns/handlers.json
   tls/agent.crt: tls/agent.crt
   tls/agent.key: tls/agent.key
@@ -62,6 +63,13 @@ properties:
       The BOSH DNS handler will filter only requests to this domain to be
       recursed to Consul.
     default: consul
+
+
+
+  ui.enable:
+    description: |
+      Whether the Consul UI should be enabled on HTTP/HTTPS port.
+    default: false
 
 
 
