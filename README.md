@@ -86,12 +86,16 @@ This is a modern BOSH Release for Consul. This implies several design choices.
 
   - Contrarily to the [Consul BOSH Release][consul_boshrelease], we chose to
     run `consul leave` at `drain` time, instead of doing it at `monit stop`
-    time.
+    time. We do this in order not to introduce unnecessary delays at
+    `monit stop` time (which is discouraged), but at `drain` time (which is
+    recommended).
 
-  - In the `drain` script we adopt a 10 seconds delay (along with
-    `leave_drain_time: "10s"`). We do this in order not to introduce
-    unnecessary delays at `monit stop` time (which is discouraged), but at
-    `drain` time (which is recommended).
+  - Unfortunately, Consul has no “consul drain” command in order for the node
+    to drain any client connections and possibly step down from any cluster
+    leader role. Instead, we use `consul leave` which is the only available
+    command that is close enough from what we need when draining a node. For
+    connections to have the necessary time to be drained, we adopt a 10
+    seconds delay in the `drain` script (with `leave_drain_time: "10s"`).
 
 - About DNS-based service discovery
 
