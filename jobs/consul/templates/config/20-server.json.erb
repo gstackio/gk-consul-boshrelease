@@ -1,0 +1,38 @@
+<%
+    require "json"
+
+    consul_servers = []
+    if_link("consul-servers") do |servers|
+        if !servers.p("server")
+            raise "The Consul instances provided by the 'consul-servers' link are not Consul servers."
+        end
+        consul_servers = servers.instances
+    end
+
+    config = {
+        server: p("server"),
+        bootstrap_expect: consul_servers.count,
+
+        # ui: true,
+
+        # telemetry: {},
+
+
+        ports: {
+            http: 8500
+        },
+    }
+
+    if p("tls.enable")
+        config[:ports][:http] = -1
+        config[:ports][:https] = 8501
+        config[:tls_min_version] = p("tls.min_version")
+        config[:cert_file] = "/var/vcap/jobs/consul/tls/agent.crt"
+        config[:key_file] = "/var/vcap/jobs/consul/tls/agent.key"
+        config[:ca_file] = "/var/vcap/jobs/consul/tls/consul-ca-bundle.crt"
+        config[:verify_incoming] = p("tls.enforce_mutual_tls")
+        config[:verify_outgoing] = true
+        config[:verify_server_hostname] = p("tls.enforce_mutual_tls")
+    end
+-%>
+<%= JSON.pretty_generate(config) %>

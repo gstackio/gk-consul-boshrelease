@@ -1,0 +1,54 @@
+<%
+    require "json"
+    require "base64"
+
+    encrypt = p("encrypt", nil)
+    if encrypt && encrypt.match(/^[0-9A-Za-z]{50,}$/)
+        # Convert 50+ characters BOSH password into base-64 encoded 32-bytes
+        hexa_key = encrypt.downcase.to_i(36).to_s(16)
+        hexa_32_bytes_key = hexa_key.rjust(64, "0")[-64..-1]
+        binary_32_bytes_key = [ hexa_32_bytes_key ].pack("H*")
+        encrypt = Base64.strict_encode64(binary_32_bytes_key).strip
+    end
+
+    config = {
+        # With BOSH, structuring information are the deployment name, the
+        # instance group name, and the instance index.
+        node_name: "#{spec.deployment}-#{spec.name}-#{spec.index}",
+        # With BOSH, instances are already assigned a UUID, so it's better to
+        # re-use it for the Consul node ID.
+        node_id: "#{spec.id}",
+
+
+        # We allow use of 50+ characters BOSH (Credhub) passwords to generate
+        # the secret key to use for encryption of Consul network traffic.
+        encrypt: encrypt,
+        encrypt_verify_incoming: p("encrypt_verify_incoming"),
+        encrypt_verify_outgoing: p("encrypt_verify_outgoing"),
+
+
+        # BOSH doesn't have a concept of 'reload'. When configuration changes,
+        # it stops processes and then starts them back. So this stop/start
+        # sequence is normal with BOSH. This means we'd better have our Consul
+        # servers gracefully leave their clusters before they go down.
+        #
+        # Here we choose to leave the cluster from the drain script.
+        #
+        # Plus, Consul seems to only drain connections when told to leave its
+        # cluster. And beyond that, we need a gracefull process for the leader
+        # to step down (when performing a BOSH rolling restart) and have
+        # followers elect a new leader.
+        #
+        # Thus we set a "leave_drain_time" of 10s here, and we have the drain
+        # script sleep 10s after leaving the cluster, to give time to
+        # connections to be drained.
+        #
+        leave_on_terminate: false, # this is done in drain script
+        performance: {
+            leave_drain_time: "10s", # we wait 10s in drain script
+        },
+        skip_leave_on_interrupt: false, # BPM never sends signal 2 (interrupt)
+        rejoin_after_leave: true, # leave/rejoin will be usual day-2 operation
+    }
+-%>
+<%= JSON.pretty_generate(config) %>

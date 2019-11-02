@@ -1,0 +1,10 @@
+<%
+    require "json"
+
+    config = {
+        ports: {
+            dns: 8600
+        },
+    }
+-%>
+<%= JSON.pretty_generate(config) %>

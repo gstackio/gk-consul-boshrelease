@@ -1,0 +1,134 @@
+---
+name: consul
+
+description: This job runs a Consul server or a Consul agent.
+
+templates:
+  bpm.yml: config/bpm.yml
+  bin/drain: bin/drain
+  config/10-consul.json.erb: config/10-consul.json
+  config/20-server.json.erb: config/20-server.json
+  config/30-bosh-integration.json.erb: config/30-bosh-integration.json
+  config/40-service-discovery.json.erb: config/40-service-discovery.json
+  dns/handlers.json.erb: dns/handlers.json
+  tls/agent.crt: tls/agent.crt
+  tls/agent.key: tls/agent.key
+  tls/consul-ca-bundle.crt: tls/consul-ca-bundle.crt
+
+packages:
+  - consul
+
+provides:
+  - name: consul
+    type: consul
+    properties:
+      - server
+  - name: consul-address
+    type: address
+
+consumes:
+  - name: consul-servers
+    type: consul
+
+properties:
+
+  datacenter:
+    description: |
+      This flag controls the datacenter in which the Consul agent is running.
+
+      Consul has first-class support for multiple datacenters, but it relies
+      on proper configuration. Nodes in the same datacenter should be on a
+      single LAN.
+    default: dc1
+
+  server:
+    description: |
+      Whether the Consul agent will run as server or client.
+    default: false
+
+  log_level:
+    description: |
+      The level of logging to show after the Consul agent has started.
+
+      The available log levels are 'trace', 'debug', 'info', 'warn', and
+      'err'.
+    default: info
+
+
+
+  dns.domain:
+    description: |
+      The BOSH DNS handler will filter only requests to this domain to be
+      recursed to Consul.
+    default: consul
+
+
+
+  encrypt:
+    description: |
+      Specifies the secret key to use for encryption of Consul network
+      traffic.
+
+      When feeding this with a 50+ length Credhub password (i.e. 50+
+      characters, with only digits and lowercase letters), then the value is
+      automatically converted to a Base64-encoded 32-bytes sequence.
+
+      Otherwise, the value is considered to directly be a Base64-encoded
+      32-bytes sequence.
+
+      When set to 'null' or left unspecified, no encryption will occur.
+
+  encrypt_verify_incoming:
+    description: |
+      Disable enforcing encryption for incoming gossip in order to upshift
+      from unencrypted to encrypted gossip on a running cluster.
+
+      See also: https://learn.hashicorp.com/consul/security-networking/agent-encryption#enable-on-an-existing-cluster
+    default: true
+
+  encrypt_verify_outgoing:
+    description: |
+      Disable enforcing encryption for outgoing gossip in order to upshift
+      from unencrypted to encrypted gossip on a running cluster.
+
+      See also: https://learn.hashicorp.com/consul/security-networking/agent-encryption#enable-on-an-existing-cluster
+    default: true
+
+
+
+  tls.enable:
+    description: |
+      Whether API and RPC should use TLS encryption or not.
+
+      When TLS is enabled, the HTTP port 8500 is disabled.
+    default: true
+
+  tls.enforce_mutual_tls:
+    description: |
+      Whether mutual TLS authentication should be enabled for API and RPC
+      client-server communications.
+    default: true
+
+  tls.cert:
+    type: certificate
+    description: |
+      The TLS certificate, private key, and CA certificate to use for API and
+      RPC encryption over TLS.
+
+      The Certificate Authority of this TLS certificate is also used to verify
+      client certificates presented by Consul clients to authenticate with
+      Consul servers, unless the 'tls.ca_bundle' property is set.
+
+  tls.ca_bundle:
+    description: |
+      The concatenated CA certificates to trust. Specifying both old and new
+      CA certificates here is essential for rotating CA certificates.
+
+      When this property is not specified, the trusted Certificate Authority
+      defaults to the CA certificate of the 'tls.cert' certificate.
+
+  tls.min_version:
+    description: |
+      The minimum supported version of TLS for API and RPC. Accepted values
+      are 'tls10', 'tls11' or 'tls12'.
+    default: tls12

@@ -1,0 +1,21 @@
+<%
+    require "json"
+
+    handlers = [
+        {
+            domain: p("dns.domain"),
+            cache: {
+                enabled: false
+            },
+            source: {
+                type: "dns",
+                recursors: [
+                    "127.0.0.1:8600"
+                ]
+            }
+        }
+    ]
+-%>
+<%=
+JSON.pretty_generate(handlers)
+%>

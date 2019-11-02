@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# If a command fails, in a pipeline or not, exit immediately
+set -e -o pipefail
+
+function prepend_datetime() {
+	awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+# Before redirecting stdout and stderr, copy the file descriptor for original
+# stdout (file desc 1) to file descriptor number 3. That's where where BOSH is
+# expecting an integer, and only that.
+exec \
+    3>&1 \
+    1> >(prepend_datetime >> /var/vcap/sys/log/consul/drain.stdout.log) \
+    2> >(prepend_datetime >> /var/vcap/sys/log/consul/drain.stderr.log)
+
+function output_for_bosh() {
+    local exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        echo "BOSH drain script succeeded"
+    else
+        echo "BOSH drain script failed, with exit status: '$exit_code'"
+    fi
+
+    echo $exit_code >&3
+}
+
+trap output_for_bosh EXIT
+
+if echo "${BOSH_JOB_NEXT_STATE}" | grep -Fq '"persistent_disk":0'; then
+    echo "detected 'scale-in' condition, decommissioning Consul node"
+    /var/vcap/jobs/consul/bin/consul leave
+    # NOTE: 'consul leave' is a synchronous client CLI command. It's not
+    # fire-and-forget, so we don't need to sleep for 10s here.
+    echo "decommissioned Consul node"
+else
+    echo "about to go down, draining Consul node"
+    /var/vcap/jobs/consul/bin/consul leave
+    # NOTE: 'consul leave' is a synchronous client CLI command. It's not
+    # fire-and-forget, so we don't need to sleep for 10s here.
+    echo "drained Consul node"
+fi

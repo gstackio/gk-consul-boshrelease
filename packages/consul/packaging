@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -ueo pipefail
+
+function _config() {
+    readonly CONSUL_VERSION=1.6.1
+}
+
+function main() {
+    _config
+
+    mkdir "tmp"
+    unzip "consul/consul_${CONSUL_VERSION}_linux_amd64.zip" \
+    	-d "tmp"
+    chmod +x "tmp/consul"
+
+    mkdir -p "${BOSH_INSTALL_TARGET}/bin"
+    cp -vp "tmp/consul" "${BOSH_INSTALL_TARGET}/bin"
+}
+
+main "$@"

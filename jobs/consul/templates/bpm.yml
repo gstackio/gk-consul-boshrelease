@@ -1,0 +1,12 @@
+---
+processes:
+  - name: consul
+    executable: /var/vcap/packages/consul/bin/consul
+    args:
+      - agent
+      - -config-dir=/var/vcap/jobs/consul/config/
+    persistent_disk: true
+    limits:
+      # See LimitNOFILE=65536 in:
+      # <https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide>
+      open_files: 65536

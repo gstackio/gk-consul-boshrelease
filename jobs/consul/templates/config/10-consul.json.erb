@@ -1,0 +1,35 @@
+<%
+    require "json"
+
+    consul_servers = []
+    if_link("consul-servers") do |servers|
+        if !servers.p("server")
+            raise "The Consul instances provided by the 'consul-servers' link are not Consul servers."
+        end
+        consul_servers = servers.instances
+    end
+
+    config = {
+
+        # Here we implement recommended setting from the official Consul
+        # deployment guide.
+        # See: https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide
+
+        datacenter: p("datacenter"),
+        data_dir: "/var/vcap/store/consul",
+        retry_join: consul_servers.map { |instance|
+            instance.address
+        },
+        performance: {
+            raft_multiplier: 1,
+        },
+
+
+
+        # These are complementary settings that make sense here
+
+        disable_update_check: true,
+        log_level: p("log_level"),
+    }
+-%>
+<%= JSON.pretty_generate(config) %>
