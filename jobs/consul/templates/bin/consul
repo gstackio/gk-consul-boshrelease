@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -ueo pipefail
+
+# This is a helper wrapper for running the Consul client CLI with proper
+# parameters to reach out to the consul servers.
+
+<% if p("tls.enable") -%>
+export CONSUL_HTTP_ADDR=https://127.0.0.1:8501
+<% else -%>
+export CONSUL_HTTP_ADDR=http://127.0.0.1:8500
+<% end -%>
+export CONSUL_CLIENT_CERT="/var/vcap/jobs/consul/tls/agent.crt"
+export CONSUL_CLIENT_KEY="/var/vcap/jobs/consul/tls/agent.key"
+export CONSUL_CACERT="/var/vcap/jobs/consul/tls/consul-ca-bundle.crt"
+
+exec /var/vcap/packages/consul/bin/consul "$@"
