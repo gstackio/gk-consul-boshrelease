@@ -109,7 +109,8 @@ properties:
     description: |
       Whether API and RPC should use TLS encryption or not.
 
-      When TLS is enabled, the HTTP port 8500 is disabled.
+      When TLS is enabled, the HTTP port 8500 is disabled and the HTTPS port
+      8501 is enabled.
     default: true
 
   tls.enforce_mutual_tls:
