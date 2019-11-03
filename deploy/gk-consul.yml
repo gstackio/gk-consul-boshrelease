@@ -18,7 +18,6 @@ instance_groups:
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_agent_tls))
-            enforce_mutual_tls: true
       - name: bpm
         release: bpm
     persistent_disk_type: default
@@ -44,7 +43,6 @@ instance_groups:
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_ui_tls))
-            enforce_mutual_tls: true
       - name: bpm
         release: bpm
     persistent_disk_type: default

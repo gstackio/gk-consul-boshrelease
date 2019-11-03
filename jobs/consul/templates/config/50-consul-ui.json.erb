@@ -3,22 +3,24 @@
 
     config = {}
 
-    if p("ui.enabled")
+    if p("server") && p("ui.enabled")
         config = config.merge({
             # Here we follow the official guide for configuring the Consul UI
             # with TLS.
             #
             # See also: https://learn.hashicorp.com/consul/security-networking/certificates#configuring-the-consul-ui-for-https
             ui: true,
-            client_addr: "0.0.0.0",
             enable_script_checks: false,
             disable_remote_exec: true,
             enable_local_script_checks: true,
         })
 
-        if p("tls.enabled")
-            config[:verify_incoming] = false
-            config[:verify_incoming_rpc] = true
+        if p("tls.enabled") && p("tls.enforce_mutual_tls")
+            # Here we already have set 'verify_incoming = true' in the
+            # '20-server.json' config file. In order to allow access to the
+            # UI, we allow disabling mutual-TLS authentication on the HTTPS
+            # API endpoint.
+            config[:verify_incoming_https] = p("ui.enforce_mutual_tls")
         end
     end
 -%>

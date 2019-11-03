@@ -1,0 +1,5 @@
+---
+
+- path: /instance_groups/name=consul-ui/jobs/name=consul/properties/ui/enforce_mutual_tls?
+  type: replace
+  value: false

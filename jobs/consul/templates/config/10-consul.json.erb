@@ -17,9 +17,7 @@
 
         datacenter: p("datacenter"),
         data_dir: "/var/vcap/store/consul",
-        retry_join: consul_servers.map { |instance|
-            instance.address
-        },
+        retry_join: consul_servers.map { |instance| instance.address },
         performance: {
             raft_multiplier: 1,
         },

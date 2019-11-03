@@ -11,15 +11,27 @@
 
     config = {
         server: p("server"),
-        bootstrap_expect: consul_servers.count,
-
-        # telemetry: {},
 
 
         ports: {
-            http: 8500
+            http: 8500,
         },
     }
+
+    if p("server")
+        config[:bootstrap_expect] = consul_servers.count
+        config[:bind_addr] = "0.0.0.0"   # we pin & explicit this default value
+        config[:client_addr] = "0.0.0.0" # when running server mode, we need API, RPC and DNS to be reachable
+
+        # NOTE: in order to support multi-homed VMs, having multiple NICs and
+        # thus multiple candidate IPv4 addresses to advertise to the rest of
+        # the Consul cluster, we explicitely advertise the IPv4 address of the
+        # first BOSH network.
+        first_network_ip_addr = spec.networks.send(spec.networks.methods(false).first).ip
+        config[:advertise_addr] = first_network_ip_addr
+
+        # config[:telemetry] = {}
+    end
 
     if p("tls.enabled")
         config[:ports][:http] = -1

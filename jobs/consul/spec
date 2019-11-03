@@ -70,7 +70,28 @@ properties:
   ui.enabled:
     description: |
       Whether the Consul UI should be enabled on HTTP/HTTPS port.
+
+      This requires the 'server' property to be set to 'true'.
+
+      Mutual-TLS authentication on the Consul UI is controlled by the
+      'ui.enforce_mutual_tls' property, overriding any value set for the
+      'tls.enforce_mutual_tls' property.
     default: false
+
+  ui.enforce_mutual_tls:
+    description: |
+      Whether mutual-TLS authentication should be enforced on HTTPS enpoint
+      (used by API and UI) when UI and TLS are enabled.
+
+      On Consul nodes with 'ui.enabled' set to 'true', setting this property
+      to 'false' typically leaves the Consul API and UI wide-open and
+      reachable with no authentication method.
+
+      When providing the Consul UI to users, it should definitely be
+      reverse-proxied. Mutual-TLS authentication should be kept enabled
+      between the Consul UI and the reverse-proxy, and some kind of user
+      authentication should be enabled on the proxy.
+    default: true
 
 
 
@@ -112,6 +133,12 @@ properties:
 
       When TLS is enabled, the HTTP port 8500 is disabled and the HTTPS port
       8501 is enabled.
+
+      When 'server' is 'true' and TLS is disabled, the HTTP API (listening on
+      port 8500), RPC and DNS servers are bound to all network interfaces,
+      accepting connections from anywhere, and come with no access
+      restriction. This should be avoided in production for security reasons,
+      to avoid exposing such wide-open things to the Internet.
     default: true
 
   tls.enforce_mutual_tls:
