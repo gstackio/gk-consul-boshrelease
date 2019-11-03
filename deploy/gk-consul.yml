@@ -65,6 +65,7 @@ variables:
     type: certificate
     update_mode: converge
     options:
+      extended_key_usage: [ server_auth, client_auth ]
       ca: consul_ca
       common_name: consul.((network_name)).((deployment_name)).bosh
       alternative_names:
@@ -77,6 +78,7 @@ variables:
     type: certificate
     update_mode: converge
     options:
+      extended_key_usage: [ server_auth, client_auth ]
       ca: consul_ca
       common_name: consul-ui.((network_name)).((deployment_name)).bosh
       alternative_names:
