@@ -73,24 +73,24 @@ properties:
 
       This requires the 'server' property to be set to 'true'.
 
-      Mutual-TLS authentication on the Consul UI is controlled by the
-      'ui.enforce_mutual_tls' property, overriding any value set for the
+      Client-certificate authentication on the Consul UI is controlled by the
+      'ui.enforce_client_cert_auth' property, overriding any value set for the
       'tls.enforce_mutual_tls' property.
     default: false
 
-  ui.enforce_mutual_tls:
+  ui.enforce_client_cert_auth:
     description: |
-      Whether mutual-TLS authentication should be enforced on HTTPS enpoint
-      (used by API and UI) when UI and TLS are enabled.
+      Whether client-certificate authentication should be enforced on HTTPS
+      enpoint (used by API and UI) when UI and TLS are enabled.
 
       On Consul nodes with 'ui.enabled' set to 'true', setting this property
       to 'false' typically leaves the Consul API and UI wide-open and
       reachable with no authentication method.
 
       When providing the Consul UI to users, it should definitely be
-      reverse-proxied. Mutual-TLS authentication should be kept enabled
-      between the Consul UI and the reverse-proxy, and some kind of user
-      authentication should be enabled on the proxy.
+      reverse-proxied. Client-certificate authentication should be kept
+      enabled between the Consul UI and the reverse-proxy, and some kind of
+      user authentication should be enabled on the proxy.
     default: true
 
 
@@ -143,7 +143,7 @@ properties:
 
   tls.enforce_mutual_tls:
     description: |
-      Whether mutual TLS authentication should be enabled for API and RPC
+      Whether mutual-TLS authentication should be enabled for API and RPC
       client-server communications.
     default: true
 

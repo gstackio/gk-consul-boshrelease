@@ -16,11 +16,22 @@
         })
 
         if p("tls.enabled") && p("tls.enforce_mutual_tls")
-            # Here we already have set 'verify_incoming = true' in the
-            # '20-server.json' config file. In order to allow access to the
-            # UI, we allow disabling mutual-TLS authentication on the HTTPS
-            # API endpoint.
-            config[:verify_incoming_https] = p("ui.enforce_mutual_tls")
+            # In order to permit easy access to the UI, we allow disabling
+            # mutual-TLS authentication on the HTTPS API endpoint.
+            #
+            # KLUDGE: when we rely on 'verify_incoming' be 'true' (from the
+            # '20-server.json' config file) and only set
+            # 'verify_incoming_https' to 'false' here, the Consul UI turns out
+            # to still require a client certificate authentication.
+            #
+            # It seems that 'verify_incoming' takes precedence over the more
+            # specific 'verify_incoming_https'. Thus, we adopt the recommended
+            # setting instead, as recommended in this guide:
+            #
+            # https://learn.hashicorp.com/consul/security-networking/certificates#step-2-verify_incoming_rpc
+
+            config[:verify_incoming] = p("ui.enforce_client_cert_auth")
+            config[:verify_incoming_rpc] = true # because p("tls.enforce_mutual_tls") is true
         end
     end
 -%>
