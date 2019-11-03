@@ -21,7 +21,7 @@
         },
     }
 
-    if p("tls.enable")
+    if p("tls.enabled")
         config[:ports][:http] = -1
         config[:ports][:https] = 8501
         config[:tls_min_version] = p("tls.min_version")

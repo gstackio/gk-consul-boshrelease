@@ -3,7 +3,7 @@
 
     config = {}
 
-    if p("ui.enable")
+    if p("ui.enabled")
         config = config.merge({
             # Here we follow the official guide for configuring the Consul UI
             # with TLS.
@@ -16,7 +16,7 @@
             enable_local_script_checks: true,
         })
 
-        if p("tls.enable")
+        if p("tls.enabled")
             config[:verify_incoming] = false
             config[:verify_incoming_rpc] = true
         end

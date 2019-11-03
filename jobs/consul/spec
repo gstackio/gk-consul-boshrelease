@@ -25,6 +25,7 @@ provides:
     type: consul
     properties:
       - server
+      - tls.enabled
   - name: consul-address
     type: address
 
@@ -66,7 +67,7 @@ properties:
 
 
 
-  ui.enable:
+  ui.enabled:
     description: |
       Whether the Consul UI should be enabled on HTTP/HTTPS port.
     default: false
@@ -105,7 +106,7 @@ properties:
 
 
 
-  tls.enable:
+  tls.enabled:
     description: |
       Whether API and RPC should use TLS encryption or not.
 

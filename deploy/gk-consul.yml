@@ -40,7 +40,7 @@ instance_groups:
         properties:
           server: true
           ui:
-            enable: true
+            enabled: true
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_ui_tls))
