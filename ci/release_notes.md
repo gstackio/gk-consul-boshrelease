@@ -7,7 +7,9 @@
 - Proper support for day-2 operations like scale-out or scale-in, through
   `consul leave` in drain script.
 
-- Support for Consul UI, that can ba activated on a subset of the Consul
+- Native support for BOSH DNS health checks.
+
+- Support for Consul UI, that can be activated on a subset of the Consul
   server nodes.
 
 - Full support for Gossip encryption (including enabling and disabling on a
