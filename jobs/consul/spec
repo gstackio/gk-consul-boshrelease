@@ -6,6 +6,7 @@ description: This job runs a Consul server or a Consul agent.
 templates:
   bpm.yml: config/bpm.yml
   bin/drain: bin/drain
+  dns/health-check.sh: bin/dns/healthy
   config/10-consul.json.erb: config/10-consul.json
   config/20-server.json.erb: config/20-server.json
   config/30-bosh-integration.json.erb: config/30-bosh-integration.json
