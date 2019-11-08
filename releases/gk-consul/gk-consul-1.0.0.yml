@@ -1,0 +1,21 @@
+name: gk-consul
+version: 1.0.0
+commit_hash: 9f4d23f
+uncommitted_changes: false
+jobs:
+- name: consul
+  version: 014ef11cb6417cc85ee168e1afdf5823ea69ff7b98f703baa87caf6b5d86fc32
+  fingerprint: 014ef11cb6417cc85ee168e1afdf5823ea69ff7b98f703baa87caf6b5d86fc32
+  sha1: sha256:f8c3145fc165b4e004d25332bf7a6f49d2ba72b77cb5aab070eee9c677d2c1e3
+  packages:
+  - consul
+packages:
+- name: consul
+  version: e4f7b66c42e183fbc650dda443ddcffc9f89c6e58d5734c19837036674ee213b
+  fingerprint: e4f7b66c42e183fbc650dda443ddcffc9f89c6e58d5734c19837036674ee213b
+  sha1: sha256:1fcd0a2c3ea022108f825d4e5404400567654af7c688ca3d11b08be053ffcabd
+  dependencies: []
+license:
+  version: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  fingerprint: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  sha1: sha256:d89a423c20b236fff5d0a1871703fab3a484e563e287f9acbdbb9359636126e8

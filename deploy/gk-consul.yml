@@ -108,7 +108,9 @@ update:
 
 releases:
 - name: gk-consul
-  version: latest
+  sha1: 08082c322dec51ffbb995f1d5ea54fdade55dc7b
+  url: https://github.com/gstackio/gk-consul-boshrelease/releases/download/v1.0.0/gk-consul-1.0.0.tgz
+  version: 1.0.0
 - name: bpm
   sha1: e612e88543012ae5d376dd3746159d5abe748076
   url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.5
