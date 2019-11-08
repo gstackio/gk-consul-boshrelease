@@ -1,7 +1,7 @@
 ---
 name: consul
 
-description: This job runs a Consul server or a Consul agent.
+description: This job runs a Consul agent.
 
 templates:
   bpm.yml: config/bpm.yml

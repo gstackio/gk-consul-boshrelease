@@ -1,4 +1,4 @@
-# Gstack BOSH Release for Hashicorp Consul
+# Consul BOSH Release
 
 This is a modern BOSH Release for Consul, which is the fastest way to get up
 and running with a cluster of [Hashicorp Consul][hashicorp_consul] when you're
