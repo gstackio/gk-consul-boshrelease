@@ -108,8 +108,11 @@ update:
 
 releases:
 - name: gk-consul
-  sha1: 08082c322dec51ffbb995f1d5ea54fdade55dc7b
-  url: https://github.com/gstackio/gk-consul-boshrelease/releases/download/v1.0.0/gk-consul-1.0.0.tgz
+  sha1: f5e4edd58757efdd40d6d302a5e277e2b751692a
+  stemcell:
+    os: ubuntu-xenial
+    version: "456.51"
+  url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.0.0-ubuntu-xenial-456.51-20191108-191951-177594676-20191108191953.tgz
   version: 1.0.0
 - name: bpm
   sha1: e612e88543012ae5d376dd3746159d5abe748076
