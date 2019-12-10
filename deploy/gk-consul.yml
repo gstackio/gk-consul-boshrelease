@@ -61,6 +61,7 @@ variables:
     options:
       is_ca: true
       common_name: Consul CA
+    update_mode: converge
   - name: consul_agent_tls
     type: certificate
     update_mode: converge
@@ -74,6 +75,7 @@ variables:
         - "server.dc1.consul"
     consumes:
       alternative_name: { from: consul-server-address }
+    update_mode: converge
   - name: consul_ui_tls
     type: certificate
     update_mode: converge
@@ -87,6 +89,7 @@ variables:
         - "server.dc1.consul"
     consumes:
       alternative_name: { from: consul-ui-address }
+    update_mode: converge
 
 features:
   use_dns_addresses: true
