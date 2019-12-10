@@ -1,5 +1,7 @@
 ### Features
 
+- Bump Consul to the latest version [1.6.2](https://github.com/hashicorp/consul/blob/master/CHANGELOG.md#162-november-13-2019)
+
 - Automate version bumps with a dedicated Concourse pipeline
 
 
