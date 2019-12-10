@@ -111,12 +111,12 @@ update:
 
 releases:
 - name: gk-consul
-  sha1: be10ef2589f83347d7189324da68f1b8930c27be
+  sha1: 87e51bc60282ea6636255b41d3b49bdd5e274dbe
   stemcell:
     os: ubuntu-xenial
     version: "621.5"
-  url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.0.0-ubuntu-xenial-621.5-20191108-201801-262567644-20191108201803.tgz
-  version: 1.0.0
+  url: https://github.com/gstackio/gk-consul-boshrelease/releases/download/v1.1.0/gk-consul-1.1.0.tgz
+  version: 1.1.0
 - name: bpm
   sha1: e612e88543012ae5d376dd3746159d5abe748076
   url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.5
