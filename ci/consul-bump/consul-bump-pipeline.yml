@@ -123,8 +123,12 @@ jobs:
                     git config --global "user.name" "((git-commit-name))"
                     git config --global "user.email" "((git-commit-email))"
 
-                    git add .
-                    git commit -m "Bump consul binary to version ${latest_consul_version}"
+                    if [[ -z "$(git status --porcelain)" ]]; then
+                        echo "INFO: nothing to commit. Skipping."
+                    else
+                        git add .
+                        git commit -m "Bump consul binary to version ${latest_consul_version}"
+                    fi
                 popd > /dev/null
 
 
