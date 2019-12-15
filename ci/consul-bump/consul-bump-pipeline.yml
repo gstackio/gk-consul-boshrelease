@@ -27,7 +27,7 @@ resources:
     source:
       uri: ((consul_release_git_uri))
       branch: master
-      private_key: ((github_private_key))
+      private_key: ((github-private-key))
 
   - name: bump-info
     type: keyval
@@ -108,8 +108,8 @@ jobs:
                     git status
                     git diff | cat
 
-                    git config --global "user.name" "((git_user_name))"
-                    git config --global "user.email" "((git_user_email))"
+                    git config --global "user.name" "((git-commit-name))"
+                    git config --global "user.email" "((git-commit-email))"
 
                     git add .
                     git commit -m "Bump consul binary to version ${latest_consul_version}"
@@ -128,8 +128,8 @@ jobs:
 
       - task: upload-blobs
         params:
-          S3_ACCESS_KEY_ID: ((s3_access_key_id))
-          S3_SECRET_ACCESS_KEY: ((s3_secret_access_key))
+          S3_ACCESS_KEY_ID: ((aws-access-key))
+          S3_SECRET_ACCESS_KEY: ((aws-secret-key))
         image: kinja-image
         config:
           platform: linux
@@ -161,8 +161,8 @@ jobs:
                 pushd "consul-boshrelease-blobs-uploaded" > /dev/null
                     bosh upload-blobs
 
-                    git config --global "user.name" "((git_user_name))"
-                    git config --global "user.email" "((git_user_email))"
+                    git config --global "user.name" "((git-commit-name))"
+                    git config --global "user.email" "((git-commit-email))"
 
                     git add "config/blobs.yml"
                     git commit -m "Uploaded blob for new Consul binary"
@@ -173,7 +173,7 @@ jobs:
           repo: consul-boshrelease-blobs-uploaded
         params:
           GIT_URI: ((consul_release_git_uri))
-          GITHUB_PRIVATE_KEY: ((github_private_key))
+          GITHUB_PRIVATE_KEY: ((github-private-key))
         image: kinja-image
         config:
           platform: linux
@@ -208,7 +208,7 @@ jobs:
 
       - task: submit-pr
         params:
-          GH_ACCESS_TOKEN: ((github_access_token))
+          GH_ACCESS_TOKEN: ((github-access-token))
           GH_OWNER: gstackio
           GH_REPO: gk-consul-boshrelease
         image: kinja-image
