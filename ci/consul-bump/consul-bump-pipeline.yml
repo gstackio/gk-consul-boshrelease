@@ -52,6 +52,7 @@ jobs:
             trigger: true
             params: { regexp: linux_amd64.zip }
           - get: consul-boshrelease-master
+          - get: gk-automation
           - get: kinja-image
 
       - task: add-blob
