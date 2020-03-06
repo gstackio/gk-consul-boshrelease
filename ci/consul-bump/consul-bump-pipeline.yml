@@ -191,7 +191,7 @@ jobs:
           branch-info: bump-info
           repo: consul-boshrelease-blobs-uploaded
         params:
-          GIT_URI: ((traefik_release_git_uri))
+          GIT_URI: ((consul_release_git_uri))
           GITHUB_PRIVATE_KEY: ((github-private-key))
         file: gk-automation/boshrelease/git-push.yml
 
