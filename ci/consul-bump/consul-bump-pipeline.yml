@@ -229,7 +229,8 @@ jobs:
                 pr_desc+="\\nHere in this PR, I've pulled that new binary in."
                 pr_desc+=" I uploaded the blob to the release blobstore, and here is the result."
                 pr_desc+="\\n"
-                pr_desc+="\\nLet's give it a shot, shall we?"
+                pr_desc+="\\nDon't hesitate to have a look at the release notes: https://github.com/hashicorp/consul/blob/master/CHANGELOG.md"
+                pr_desc+="\\nWhen it's okay to you, let's give it a shot, shall we?"
                 pr_desc+="\\n"
                 pr_desc+="\\nBest"
 
