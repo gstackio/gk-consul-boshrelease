@@ -118,6 +118,6 @@ releases:
   url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.3.0-ubuntu-xenial-621.69-20200417-222714-08829434-20200417222717.tgz
   version: 1.3.0
 - name: bpm
-  sha1: c956394fce7e74f741e4ae8c256b480904ad5942
-  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.8
-  version: 1.1.8
+  sha1: dcf0582d838a73de29da273552ae79ac3098ee8b
+  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.9
+  version: 1.1.9
