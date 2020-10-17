@@ -1,1 +1,2 @@
-<%= p("tls.ca_bundle", p("tls.cert.ca", "")) -%>
+<%= p("tls.cert.ca", "") %>
+<%= p("tls.ca_bundle", "") %>

@@ -163,8 +163,9 @@ properties:
       The concatenated CA certificates to trust. Specifying both old and new
       CA certificates here is essential for rotating CA certificates.
 
-      When this property is not specified, the trusted Certificate Authority
-      defaults to the CA certificate of the 'tls.cert' certificate.
+      The CA certificate of the 'tls.cert' is always trusted. This is a design
+      choice here in this BOSH Release.
+    default: ""
 
   tls.min_version:
     description: |
