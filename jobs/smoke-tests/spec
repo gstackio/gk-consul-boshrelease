@@ -1,0 +1,26 @@
+---
+name: smoke-tests
+
+templates:
+  bin/run: bin/run
+  tls/client.crt: tls/client.crt
+  tls/client.key: tls/client.key
+  tls/server-ca-bundle.crt: tls/server-ca-bundle.crt
+
+packages: []
+
+consumes:
+  - name: consul-servers
+    type: consul
+
+properties:
+  client_cert:
+    type: certificate
+    description: |
+      The client certificate to use to authenticate with Consul when querying
+      the API.
+
+  server_ca_bundle:
+    description: |
+      The concatenated CA certificates to trust in order to validate Consul
+      servers certificates.

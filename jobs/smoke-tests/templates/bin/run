@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+<%
+    require "shellwords"
+    def esc(x)
+        Shellwords.shellescape(x)
+    end
+
+    consul_servers = link("consul-servers")
+    if consul_servers.p("server")
+
+        if consul_servers.p("tls.enabled")
+            api_scheme = "https"
+            api_port = 8501
+        else
+            api_scheme = "http"
+            api_port = 8500
+        end
+-%>
+
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%TZ)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    1> >(prepend_datetime >&3) \
+    2>&1
+
+function request() {
+    local base=$1 uri_path=$4; shift 2
+
+    (
+        set -x
+        curl --silent --fail --show-error --location \
+            --cacert "/var/vcap/jobs/smoke-tests/tls/server-ca-bundle.crt" \
+            --cert "/var/vcap/jobs/smoke-tests/tls/client.crt" \
+            --key "/var/vcap/jobs/smoke-tests/tls/client.key" \
+            --url "${base}${uri_path}"
+    )
+}
+
+function test_node() {
+    local node_base_uri=$1; shift 1
+
+    local members_status unhealthy_members
+    members_status=$(
+        request "${node_base_uri}" "/v1/agent/members" \
+        | jq --compact-output '[ .[] | { Name: .Name, Status: .Status } ]')
+
+    unhealthy_members=$(
+        jq --raw-output '.[] | select(.Status != 1) | .Name' \
+            <<< "${members_status}")
+
+    if [[ -n ${unhealthy_members} ]]; then
+        echo "FAILURE: unhealthy members with status <> 1"
+        jq --raw-output '.[] | .Name + ":\t" + (.Status | tostring)' \
+                <<< "${members_status}"
+            | column -s $'\t' -t
+        success="false"
+    fi
+}
+
+success="true"
+
+<%      consul_servers.instances.each do |consul_server| -%>
+test_node <%= esc("#{api_scheme}://#{consul_server.address}:#{api_port}") %>
+<%      end -%>
+
+if [[ ${success} != "true" ]]; then
+    echo "Failure"
+    exit 1
+fi
+
+<%
+    end # if p("server")
+-%>
+echo "Success"
+exit 0

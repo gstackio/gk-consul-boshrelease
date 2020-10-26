@@ -1,0 +1,7 @@
+---
+
+- path: /releases/name=gk-consul
+  type: replace
+  value:
+    name: gk-consul
+    version: latest

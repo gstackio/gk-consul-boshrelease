@@ -18,6 +18,8 @@ instance_groups:
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_agent_tls))
+            ca_bundle: |
+              ((consul_clients_ca.certificate))
       - name: bpm
         release: bpm
     persistent_disk_type: default
@@ -33,6 +35,7 @@ instance_groups:
       - name: consul
         release: gk-consul
         provides:
+          consul: { as: consul-ui-servers }
           consul-address: { as: consul-ui-address }
         consumes:
           consul-servers: { from: consul-servers }
@@ -43,9 +46,29 @@ instance_groups:
           encrypt: ((consul_encrypt_key))
           tls:
             cert: ((consul_ui_tls))
+            ca_bundle: |
+              ((consul_clients_ca.certificate))
       - name: bpm
         release: bpm
     persistent_disk_type: default
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
+  - name: smoke-tests-vm
+    lifecycle: errand
+    instances: 1
+    azs: [ z1 ]
+    jobs:
+      - name: smoke-tests
+        release: gk-consul
+        consumes:
+          consul-servers: { from: consul-servers }
+        properties:
+          client_cert: ((smoke_tests_client_cert))
+          server_ca_bundle: |
+            ((consul_ca.certificate))
     stemcell: default
     vm_type: default
     networks:
@@ -64,7 +87,6 @@ variables:
     update_mode: converge
   - name: consul_agent_tls
     type: certificate
-    update_mode: converge
     options:
       extended_key_usage: [ server_auth, client_auth ]
       ca: consul_ca
@@ -78,7 +100,6 @@ variables:
     update_mode: converge
   - name: consul_ui_tls
     type: certificate
-    update_mode: converge
     options:
       extended_key_usage: [ server_auth, client_auth ]
       ca: consul_ca
@@ -89,6 +110,19 @@ variables:
         - "server.dc1.consul"
     consumes:
       alternative_name: { from: consul-ui-address }
+    update_mode: converge
+  - name: consul_clients_ca
+    type: certificate
+    options:
+      is_ca: true
+      common_name: Consul clients CA
+    update_mode: converge
+  - name: smoke_tests_client_cert
+    type: certificate
+    options:
+      extended_key_usage: [ client_auth ]
+      ca: consul_clients_ca
+      common_name: smoke-tests
     update_mode: converge
 
 features:
