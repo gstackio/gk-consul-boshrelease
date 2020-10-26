@@ -22,13 +22,13 @@
         end
 -%>
 
-exec curl --silent --fail --show-error \
+exec curl --silent --fail --show-error --location \
     --resolve <%= esc("#{spec.address}:#{api_port}:127.0.0.1") %> \
     --cacert "/var/vcap/jobs/consul/tls/consul-ca-bundle.crt" \
     --cert "/var/vcap/jobs/consul/tls/agent.crt" \
     --key "/var/vcap/jobs/consul/tls/agent.key" \
-    --url <%= esc("#{api_scheme}://#{spec.address}:#{api_port}/#{uri}") %> \
+    --url <%= esc("#{api_scheme}://#{spec.address}:#{api_port}#{uri}") %> \
     --output /dev/null
 <%
-    end
+    end # if p("server")
 -%>
