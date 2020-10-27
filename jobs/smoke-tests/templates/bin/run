@@ -56,7 +56,7 @@ function test_node() {
     if [[ -n ${unhealthy_members} ]]; then
         echo "FAILURE: unhealthy members with status <> 1"
         jq --raw-output '.[] | .Name + ":\t" + (.Status | tostring)' \
-                <<< "${members_status}"
+                <<< "${members_status}" \
             | column -s $'\t' -t
         success="false"
     fi
