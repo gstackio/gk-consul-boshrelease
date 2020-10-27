@@ -28,6 +28,8 @@ exec \
     1> >(prepend_datetime >&3) \
     2>&1
 
+export PATH="/var/vcap/packages/jq-1.6-linux/bin:${PATH}"
+
 function request() {
     local base=$1 uri_path=$4; shift 2
 
