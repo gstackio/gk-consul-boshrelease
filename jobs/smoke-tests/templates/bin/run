@@ -31,7 +31,7 @@ exec \
 export PATH="/var/vcap/packages/jq-1.6-linux/bin:${PATH}"
 
 function request() {
-    local base=$1 uri_path=$4; shift 2
+    local base=$1 uri_path=$2; shift 2
 
     (
         set -x
@@ -57,11 +57,13 @@ function test_node() {
 
     if [[ -n ${unhealthy_members} ]]; then
         echo "FAILURE: unhealthy members with status <> 1"
-        jq --raw-output '.[] | .Name + ":\t" + (.Status | tostring)' \
-                <<< "${members_status}" \
-            | column -s $'\t' -t
         success="false"
     fi
+
+    jq --raw-output '.[] | .Name + ":\t" + (.Status | tostring)' \
+            <<< "${members_status}" \
+        | column -s $'\t' -t
+    echo
 }
 
 success="true"
