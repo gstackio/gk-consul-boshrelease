@@ -1,6 +1,8 @@
 ### Features
 
-- Bump Consul to the latest version [1.8.4](https://github.com/hashicorp/consul/blob/master/CHANGELOG.md#184-september-11-2020)
+- Added new `smoke-tests` job. Smoke tests run on each server nodes and verify that all peers are alive and reachable.
+
+- Bump Consul to the latest version [1.8.5](https://github.com/hashicorp/consul/blob/master/CHANGELOG.md#185-october-23-2020)
 
 - Bump BPM to v1.1.9 in the standard deployment manifest.
 
