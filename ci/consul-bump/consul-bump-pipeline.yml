@@ -12,10 +12,10 @@ resource_types:
       repository: starkandwayne/hashicorp-release-resource
 
 resources:
-  - name: kinja-image
+  - name: gk-ops-image
     type: docker-image
     source:
-      repository: kinja/pipeline-image
+      repository: gstack/gk-ops
 
   - name: consul-zip-release
     type: hashicorp-release
@@ -53,12 +53,12 @@ jobs:
             params: { regexp: linux_amd64.zip }
           - get: consul-boshrelease-master
           - get: gk-automation
-          - get: kinja-image
+          - get: gk-ops-image
 
       - task: add-blob
         input_mapping:
           consul-boshrelease: consul-boshrelease-master
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -149,7 +149,7 @@ jobs:
         params:
           S3_ACCESS_KEY_ID: ((aws-access-key))
           S3_SECRET_ACCESS_KEY: ((aws-secret-key))
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -188,7 +188,7 @@ jobs:
                 popd > /dev/null
 
       - task: git-push
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           branch-info: bump-info
           repo: consul-boshrelease-blobs-uploaded
@@ -202,7 +202,7 @@ jobs:
           GH_ACCESS_TOKEN: ((github-access-token))
           GH_OWNER: gstackio
           GH_REPO: gk-consul-boshrelease
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -267,10 +267,10 @@ jobs:
             params: { tarball: false }
           - get: consul-boshrelease-master
           - get: gk-automation
-          - get: kinja-image
+          - get: gk-ops-image
 
       - task: bump-bpm
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           bosh-io-release: bpm-bosh-io-release
           repo: consul-boshrelease-master
@@ -288,7 +288,7 @@ jobs:
           file: bump-info/keyval.properties
 
       - task: git-push
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           branch-info: bump-info
           repo: consul-boshrelease-bumped
