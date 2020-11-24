@@ -4,7 +4,7 @@ meta:
   target:  gk
   url:     https://ci.gstack.io
 
-  test-errand: "smoke-tests"
+  test-errands: smoke-tests
 
   initial_version: "1.0.0"
 
