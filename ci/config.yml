@@ -4,3 +4,5 @@ github_username: gk-concourse-ninja
 git_user_name: Gstack Concourse Ninja
 
 consul_release_git_uri: git@github.com:gstackio/gk-consul-boshrelease.git
+
+dockerhub_username: gkconcourseninja

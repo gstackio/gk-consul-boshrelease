@@ -26,6 +26,9 @@ meta:
 
   image:
     name: gstack/gk-ops
+    registry:
+      username: ((dockerhub-username))
+      password: ((dockerhub-password))
 
   aws:
     bucket:      (( grab meta.pipeline ))
