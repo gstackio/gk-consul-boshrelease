@@ -1,4 +1,3 @@
-consul/consul_1.9.1_linux_amd64.zip:
-  size: 41289328
-  object_id: 7c33fc33-4f61-460f-700c-e0cecc40ff36
-  sha: sha256:9ba45ec6eb3e762444f077ae06e407ca5161d46785d725d7b5ea0c4d5cd5a99b
+consul/consul_1.9.3_linux_amd64.zip:
+  size: 41321651
+  sha: sha256:2ec9203bf370ae332f6584f4decc2f25097ec9ef63852cd4ef58fdd27a313577
