@@ -3,7 +3,7 @@
 set -ueo pipefail
 
 function _config() {
-    readonly CONSUL_VERSION=1.9.1
+    readonly CONSUL_VERSION=1.9.4
 }
 
 function main() {
