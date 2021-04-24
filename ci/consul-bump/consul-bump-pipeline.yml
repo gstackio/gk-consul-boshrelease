@@ -173,31 +173,36 @@ jobs:
                 git clone "consul-boshrelease-bumped" "consul-boshrelease-blobs-uploaded"
                 cp -Rp "consul-boshrelease-bumped/blobs" "consul-boshrelease-blobs-uploaded"
 
-                set +x
-                cat <<EOF > "consul-boshrelease-blobs-uploaded/config/private.yml"
+                pushd "consul-boshrelease-blobs-uploaded" > /dev/null
+                    (
+                        set +x
+                        cat <<EOF > "config/private.yml"
                 ---
                 blobstore:
                   options:
                     access_key_id: ${S3_ACCESS_KEY_ID}
                     secret_access_key: ${S3_SECRET_ACCESS_KEY}
                 EOF
-                set -x
-
-                pushd "consul-boshrelease-blobs-uploaded" > /dev/null
+                    )
                     bosh upload-blobs
-
-                    git config --global "user.name" "((git-commit-name))"
-                    git config --global "user.email" "((git-commit-email))"
-
-                    git add "config/blobs.yml"
-                    git commit -m "Uploaded blob for new Consul binary"
+                    rm "config/private.yml"
                 popd > /dev/null
+
+      - task: git-commit
+        image: gk-ops-image
+        file: gk-automation/boshrelease/git-commit.yml
+        input_mapping:
+          repo: consul-boshrelease-blobs-uploaded
+        params:
+          GIT_COMMIT_MESSAGE: "Uploaded blob for new Consul binary"
+          GIT_COMMIT_NAME:    ((git-commit-name))
+          GIT_COMMIT_EMAIL:   ((git-commit-email))
 
       - task: git-push
         image: gk-ops-image
         input_mapping:
           branch-info: bump-info
-          repo: consul-boshrelease-blobs-uploaded
+          repo:        repo-committed
         params:
           GIT_URI: ((consul_release_git_uri))
           GITHUB_PRIVATE_KEY: ((github-private-key))
