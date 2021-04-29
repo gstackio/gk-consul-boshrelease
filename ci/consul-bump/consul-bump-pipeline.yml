@@ -32,7 +32,7 @@ resources:
     type: git
     source:
       uri: git@github.com:gstackio/gk-automation.git
-      branch: master
+      branch: v1
       private_key: ((github-private-key))
 
   - name: bpm-bosh-io-release
