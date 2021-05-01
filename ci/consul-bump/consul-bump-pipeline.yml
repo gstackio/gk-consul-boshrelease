@@ -11,6 +11,7 @@ resource_types:
 resources:
   - name: gk-ops-image
     type: docker-image
+    icon: docker
     source:
       repository: harbor.ci.gstack.io/gstack/gk-ops
       username: ((docker_registry_username))
@@ -23,6 +24,7 @@ resources:
 
   - name: gk-automation
     type: git
+    icon: github
     source:
       uri: git@github.com:gstackio/gk-automation.git
       branch: v1
@@ -35,6 +37,7 @@ resources:
 
   - name: consul-boshrelease-master
     type: git
+    icon: github
     source:
       uri: ((consul_release_git_uri))
       branch: master
