@@ -2,6 +2,8 @@
 
 - Switch to using Bionic stemcells
 
+- Bump Consul to the latest version [1.9.5](https://github.com/hashicorp/consul/blob/master/CHANGELOG.md#195-april-15-2021)
+
 
 ### Caveats
 
