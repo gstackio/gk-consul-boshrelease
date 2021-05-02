@@ -27,7 +27,7 @@ resources:
     icon: github
     source:
       uri: git@github.com:gstackio/gk-automation.git
-      branch: v1
+      branch: master
       private_key: ((github-private-key))
 
   - name: bpm-bosh-io-release
@@ -44,7 +44,8 @@ resources:
       private_key: ((github-private-key))
 
 jobs:
-  - name: detect
+  - name: detect-consul
+    serial: true
     plan:
       - in_parallel:
           - get: consul-zip-release
@@ -69,7 +70,7 @@ jobs:
         image: gk-ops-image
         file: gk-automation/tasks/boshrelease/bump-blob.yml
         input_mapping:
-          artifact-release: artifact-gzipped
+          artifact-release: consul-zip-release
           boshrelease-repo: repo-branched
         params:
           ARTIFACT_HUMAN_NAME:      Consul binary
@@ -147,7 +148,7 @@ jobs:
 
       - task: bump-bpm
         image: gk-ops-image
-        file: gk-automation/boshrelease/depl-manifest-release-bump.yml
+        file: gk-automation/tasks/boshrelease/depl-manifest-release-bump.yml
         input_mapping:
           bosh-io-release: bpm-bosh-io-release
           repo:            consul-boshrelease-master
