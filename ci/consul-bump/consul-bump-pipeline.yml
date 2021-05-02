@@ -70,12 +70,12 @@ jobs:
         file: gk-automation/tasks/boshrelease/bump-blob.yml
         input_mapping:
           artifact-release: artifact-gzipped
-          boshrelease-repo: traefik-boshrelease-master
+          boshrelease-repo: repo-branched
         params:
           ARTIFACT_HUMAN_NAME:      Consul binary
-          ARTIFACT_FILE_TEMPLATE:   consul_${blob_version}_linux_amd64.zip
+          ARTIFACT_FILE_TEMPLATE:   consul_${artifact_version}_linux_amd64.zip
           BLOB_PATH_AWK_PATTERN:    consul\/consul_[0-9.]+_linux_amd64\.zip
-          BLOB_PATH_TEMPLATE:       consul/consul_${blob_version}_linux_amd64.zip
+          BLOB_PATH_TEMPLATE:       consul/consul_${artifact_version}_linux_amd64.zip
           PACKAGE_NAME:             consul
           ARTIFACT_REF_VARS_PREFIX: CONSUL
 
@@ -101,7 +101,7 @@ jobs:
         image: gk-ops-image
         file: gk-automation/tasks/git/commit.yml
         input_mapping:
-          repo: consul-boshrelease-blobs-uploaded
+          repo: boshrelease-repo-blobs-uploaded
         params:
           GIT_COMMIT_MESSAGE: "Uploaded blob for new Consul binary"
           GIT_COMMIT_NAME:    ((git-commit-name))
