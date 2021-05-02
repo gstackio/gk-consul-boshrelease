@@ -6,7 +6,7 @@ using [BOSH][bosh_io].
 
 You are provided here with all the necessary binaries, configuration
 templates, and startup scripts for _converging_ Consul clusters (i.e.
-installing and updating over time) on Ubuntu Xenial nodes. Plus, we also
+installing and updating over time) on Ubuntu Bionic nodes. Plus, we also
 provide here a standard [deployment manifest][depl_manifest] to help you
 deploy your first Consul cluster easily.
 
