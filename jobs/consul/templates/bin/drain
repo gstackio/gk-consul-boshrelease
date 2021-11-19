@@ -4,7 +4,8 @@
 set -e -o pipefail
 
 function prepend_datetime() {
-	awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+	awk -W "interactive" \
+        '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
 }
 
 # Before redirecting stdout and stderr, copy the file descriptor for original
@@ -18,18 +19,18 @@ exec \
 function output_for_bosh() {
     local exit_code=$?
 
-    if [ $exit_code -eq 0 ]; then
+    if [[ ${exit_code} -eq 0 ]]; then
         echo "BOSH drain script succeeded"
     else
         echo "BOSH drain script failed, with exit status: '$exit_code'"
     fi
 
-    echo $exit_code >&3
+    echo "${exit_code}" >&3
 }
 
-trap output_for_bosh EXIT
+trap "output_for_bosh" "EXIT"
 
-if echo "${BOSH_JOB_NEXT_STATE}" | grep -Fq '"persistent_disk":0'; then
+if grep -Fq '"persistent_disk":0' <<< "${BOSH_JOB_NEXT_STATE}"; then
     echo "detected 'scale-in' condition, decommissioning Consul node"
     /var/vcap/jobs/consul/bin/consul leave
     # NOTE: 'consul leave' is a synchronous client CLI command. It's not
