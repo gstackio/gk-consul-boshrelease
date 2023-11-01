@@ -46,6 +46,7 @@ resources:
 jobs:
   - name: detect-consul
     serial: true
+    serial_groups: [ detect ]
     plan:
       - in_parallel:
           - get: consul-zip-release
