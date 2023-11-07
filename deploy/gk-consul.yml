@@ -152,6 +152,6 @@ releases:
   url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.6.0-ubuntu-bionic-0.28-20210502-144842-399604816-20210502144843.tgz
   version: 1.6.0
 - name: bpm
-  sha1: 31738453e3f79cc49cf0fbc9986fcef0bee88fb7
-  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.2.10
-  version: 1.2.10
+  sha1: 5988b4db6137e08c57ce5660881f9df8496bcf98
+  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.2.11
+  version: 1.2.11
