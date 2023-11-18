@@ -3,8 +3,8 @@
 set -ueo pipefail
 
 function configure() {
-    CONSUL_VERSION=1.9.5
-    CONSUL_SHA256=76e46d6711c92ffe573710345dc8c996605822eb6dbb371f895f011cda260035
+    CONSUL_VERSION=1.16.3
+    CONSUL_SHA256=9d0d7ad123844d43543d285cc0b3e15393d75ffa384bf84e5d64226a7f3d3132
 }
 
 function main() {
