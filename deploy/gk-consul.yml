@@ -145,12 +145,12 @@ update:
 
 releases:
 - name: gk-consul
-  sha1: 522469dad260e77098e605f94bca14611e5b31bb
+  sha1: a04b6e995221bfdea0524691b6f715ea7b2f6b16
   stemcell:
     os: ubuntu-bionic
     version: "0.28"
-  url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.6.0-ubuntu-bionic-0.28-20210502-144842-399604816-20210502144843.tgz
-  version: 1.6.0
+  url: https://github.com/gstackio/gk-consul-boshrelease/releases/download/v1.7.0/gk-consul-1.7.0.tgz
+  version: 1.7.0
 - name: bpm
   sha1: 8052def173f1e1d87dcbbce353dd2e6d1df96177
   url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.2.19

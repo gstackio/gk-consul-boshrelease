@@ -1,0 +1,32 @@
+name: gk-consul
+version: 1.7.0
+commit_hash: 3c12a5b
+uncommitted_changes: false
+jobs:
+- name: consul
+  version: 4a31e61b52cf149e0049140f2c1a60ec498308c19d9d20400795924654406a41
+  fingerprint: 4a31e61b52cf149e0049140f2c1a60ec498308c19d9d20400795924654406a41
+  sha1: sha256:25c8276fc6a80c713a5c6a6a36fd837e1d5f0b93ef6fd82ebe27f40aa86654a1
+  packages:
+  - consul
+- name: smoke-tests
+  version: b6057a7706ed46b986a12460c29eedb1ef4e217f4ce5151937afdddd13dd7fdc
+  fingerprint: b6057a7706ed46b986a12460c29eedb1ef4e217f4ce5151937afdddd13dd7fdc
+  sha1: sha256:5080cb0998034f7f2f73e41a0e7e128a197c44e4fce9c22622b38b9554e82c09
+  packages:
+  - jq-1.6-linux
+packages:
+- name: consul
+  version: a661a54ec6c09c565b9d037c49194aa6a7d093c22fc45b93e97ac26c0396149b
+  fingerprint: a661a54ec6c09c565b9d037c49194aa6a7d093c22fc45b93e97ac26c0396149b
+  sha1: sha256:3bc2a80fbbfd18241e325c0304c1fa80954679e9a264d429972282b73060090b
+  dependencies: []
+- name: jq-1.6-linux
+  version: 0091c5396ef5583a7d815ff3cad70deb5adb859a8f9c394ae515566ea53d0f8c
+  fingerprint: 0091c5396ef5583a7d815ff3cad70deb5adb859a8f9c394ae515566ea53d0f8c
+  sha1: sha256:4f360469a34b7eb4fb7bace851ab84926ebf0bc30f3d937157c6629b5808598d
+  dependencies: []
+license:
+  version: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  fingerprint: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  sha1: sha256:d89a423c20b236fff5d0a1871703fab3a484e563e287f9acbdbb9359636126e8
