@@ -145,11 +145,11 @@ update:
 
 releases:
 - name: gk-consul
-  sha1: a04b6e995221bfdea0524691b6f715ea7b2f6b16
+  sha1: d2f552d283406f1b72e2fe2e344b00ff7650b7c8
   stemcell:
-    os: ubuntu-bionic
-    version: "0.28"
-  url: https://github.com/gstackio/gk-consul-boshrelease/releases/download/v1.7.0/gk-consul-1.7.0.tgz
+    os: ubuntu-jammy
+    version: "1.439"
+  url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.7.0-ubuntu-jammy-1.439-20240510-144656-817884567-20240510144658.tgz
   version: 1.7.0
 - name: bpm
   sha1: 8052def173f1e1d87dcbbce353dd2e6d1df96177
