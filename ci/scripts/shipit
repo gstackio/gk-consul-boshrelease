@@ -22,7 +22,7 @@ header() {
 : ${RELEASE_ROOT:?required}
 : ${GH_RELEASE_NAME:?required}
 : ${REPO_OUT:?required}
-: ${BRANCH:?required}
+RELEASE_BRANCH=${RELEASE_BRANCH:-"master"}
 : ${GITHUB_OWNER:?required}
 : ${VERSION_FROM:?required}
 : ${GIT_EMAIL:?required}
@@ -50,6 +50,11 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 git clone ${REPO_ROOT} ${REPO_OUT}
 
 pushd ${REPO_OUT}
+
+if [[ -f ".gitattributes" ]] && grep -qF "lfs" ".gitattributes"; then
+  git lfs install
+fi
+
 release_name=$(bosh int config/final.yml --path /final_name 2> /dev/null) \
   || release_name=$(bosh int config/final.yml --path /name)
 
@@ -111,7 +116,7 @@ fi
 pushd ${REPO_OUT}
 ${script_dir}/update-manifest-release ${release_name} ${version} ${release_url} ${release_sha1}
 
-git merge --no-edit ${BRANCH}
+git merge --no-edit "${RELEASE_BRANCH}"
 git add -A
 git status
 git commit -m "release v${version}"

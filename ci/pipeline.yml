@@ -42,18 +42,20 @@ meta:
     secret_key: (( param "Please set your AWS Secret Key ID for your pipeline S3 Bucket" ))
 
   github:
-    uri:          (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
-    owner:        (( param "Please specify the name of the user / organization that owns the Github repository" ))
-    repo:         (( param "Please specify the name of the Github repository" ))
-    branch:       master
-    private_key:  (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
-    access_token: (( param "Please generate a Personal Access Token to be used for creating github releases (do you have a ci-bot?)" ))
+    uri:            (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
+    owner:          (( param "Please specify the name of the user / organization that owns the Github repository" ))
+    repo:           (( param "Please specify the name of the Github repository" ))
+    branch:         master
+    pr_base_branch: (( grab meta.github.branch ))
+    release_branch: (( grab meta.github.branch ))
+    private_key:    (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
+    access_token:   (( param "Please generate a Personal Access Token to be used for creating github releases (do you have a ci-bot?)" ))
 
   bosh:
     stemcell:
       major: 1
       cpi: aws-xen-hvm
-      os: ubuntu-bionic
+      os: ubuntu-jammy
     target:        ((bosh-lite-environment))
     cacert:        ((bosh-lite-ca-cert))
     username:      ((bosh-lite-client))
@@ -69,15 +71,15 @@ meta:
     success_moji: ":airplane_departure:"
     fail_moji:    ":airplane_arriving:"
     upset_moji:   ":sadpanda:"
-    fail_url:     (( concat "<" meta.url "/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}| Concourse Failure! " meta.slack.upset_moji ">" ))
-    fail_text:    '(( concat meta.slack.fail_url " " meta.pipeline ": `${BUILD_JOB_NAME}` job failed" ))'
+    pipeline_url:  (( concat meta.url "/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}" ))
+    fail_link:     (( concat "<" meta.slack.pipeline_url "/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}| Let's go fix it!>" ))
+    fail_text:    '(( concat meta.pipeline ": `${BUILD_JOB_NAME}` job has failed " meta.slack.upset_moji " " meta.slack.fail_link " :hammer_and_wrench:" ))'
 
 groups:
   - name: (( grab meta.pipeline ))
     jobs:
       - testflight
       - testflight-pr
-      - pre
       - rc
       - shipit
   - name: versioning
@@ -102,8 +104,7 @@ jobs:
         image: image
         config:
           platform: linux
-          inputs:
-            - { name: git }
+          inputs: [ name: git ]
           run:
             path: ./git/ci/scripts/testflight
             args: []
@@ -122,6 +123,7 @@ jobs:
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -143,8 +145,7 @@ jobs:
         image: image
         config:
           platform: linux
-          inputs:
-            - { name: git-pull-requests }
+          inputs: [ name: git-pull-requests ]
           run:
             path: ./git-pull-requests/ci/scripts/testflight
             args: []
@@ -175,43 +176,47 @@ jobs:
         image: image
         config:
           platform: linux
-          inputs:
-            - { name: git-pull-requests }
-          outputs:
-            - { name: message }
+          inputs: [ name: git-pull-requests ]
+          outputs: [ name: message ]
           run:
             path: bash
             args:
             - -c
             - |
               set -ueo pipefail
-              pr_author=$(< git-pull-requests/.git/resource/author)
-              pr_title=$( < git-pull-requests/.git/resource/title)
-              pr_url=$(   < git-pull-requests/.git/resource/url)
-              echo "Pull request “_<${pr_url}|${pr_title}>_” by *${pr_author}*" \
+              pr_author=$(      < git-pull-requests/.git/resource/author)
+              pr_author_email=$(< git-pull-requests/.git/resource/author_email)
+              pr_title=$(       < git-pull-requests/.git/resource/title)
+              pr_url=$(         < git-pull-requests/.git/resource/url)
+              echo "Pull request “_<${pr_url}|${pr_title}>_”" \
+                "by *${pr_author:-${pr_author_email}}*" \
                 "has passed testflight :tada:" \
-                "Merge when ready: ${pr_url}" \
+                "Merge when ready ${SUCCESS_MOJI}:"$'\n'"${pr_url}" \
                 > message/body
+          params:
+            SUCCESS_MOJI: (( grab meta.slack.success_moji ))
     on_success:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
         icon_url: (( grab meta.slack.icon ))
         text_file: message/body
 
-  - name: pre
+  - name: rc
     public: true
     serial: true
     plan:
       - in_parallel:
           - { get: git,     trigger: true, passed: [ testflight ] }
-          - { get: version, trigger: true }
+          - { get: version, params: { pre: rc } }
           - { get: image }
       - task: release-notes
         image: image
         config:
           platform: linux
+          inputs: [ name: git ]
           run:
             path: sh
             args:
@@ -231,27 +236,11 @@ jobs:
                 echo "hitting (+) on that shipit job..."
                 echo
               fi
-          inputs:
-          - name: git
-    on_failure:
-      put: notify
-      params:
-        channel:  (( grab meta.slack.channel ))
-        username: (( grab meta.slack.username ))
-        icon_url: (( grab meta.slack.icon ))
-        text:     (( grab meta.slack.fail_text ))
-
-  - name: rc
-    public: true
-    serial: true
-    plan:
-      - in_parallel:
-          - { get: git,     trigger: true, passed: [ pre ] }
-          - { get: version, params: { pre: rc } }
       - put: version
-        params: {file: version/number}
+        params: { file: version/number }
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -262,10 +251,11 @@ jobs:
     public: true
     serial: true
     plan:
-      - { get: version, trigger: false, params: {bump: minor} }
-      - { put: version,                 params: {file: version/number} }
+      - { get: version, trigger: false, params: { bump: minor } }
+      - { put: version,                 params: { file: version/number } }
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -276,10 +266,11 @@ jobs:
     public: true
     serial: true
     plan:
-      - { get: version, trigger: false, params: {bump: patch} }
-      - { put: version,                 params: {file: version/number} }
+      - { get: version, trigger: false, params: { bump: patch } }
+      - { put: version,                 params: { file: version/number } }
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -290,10 +281,11 @@ jobs:
     public: true
     serial: true
     plan:
-      - { get: version, trigger: false, params: {bump: major} }
-      - { put: version,                 params: {file: version/number} }
+      - { get: version, trigger: false, params: { bump: major } }
+      - { put: version,                 params: { file: version/number } }
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -329,7 +321,7 @@ jobs:
             GH_RELEASE_NAME:  (( grab meta.release ))
             REPO_OUT:         pushme
             NOTIFICATION_OUT: notifications
-            BRANCH:           (( grab meta.github.branch ))
+            RELEASE_BRANCH:   (( grab meta.github.release_branch ))
             GITHUB_OWNER:     (( grab meta.github.owner ))
             GIT_EMAIL:        (( grab meta.git.email ))
             GIT_NAME:         (( grab meta.git.name ))
@@ -346,10 +338,10 @@ jobs:
           file:  (( concat "gh/artifacts/" meta.name "-*.tgz" ))
       - put: github
         params:
-          name:   gh/name
-          tag:    gh/tag
-          body:   gh/notes.md
-          globs: [gh/artifacts/*]
+          name:  gh/name
+          tag:   gh/tag
+          body:  gh/notes.md
+          globs: [ gh/artifacts/* ]
       - put: version
         params:
           bump: patch
@@ -361,6 +353,7 @@ jobs:
           text_file: notifications/message
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -372,11 +365,12 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-          - { get: git }
-          - { get: github, trigger: true }
+          - get: git
+          - get: github
+            trigger: true
           - get: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
             params: { tarball: false }
-          - { get: image }
+          - get: image
       - task: export-release
         image: image
         config:
@@ -403,6 +397,7 @@ jobs:
           file: (( concat "compiled-release/compiled-releases/" meta.name "/*.tgz" ))
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -419,10 +414,10 @@ jobs:
             passed: [compile-release]
             trigger: true
           - get: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
-            passed: [compile-release]
-            params: {tarball: false}
+            passed: [ compile-release ]
+            params: { tarball: false }
           - get: compiled-release
-            passed: [compile-release]
+            passed: [ compile-release ]
           - get: image
       - task: use-compiled-releases
         image: image
@@ -453,6 +448,7 @@ jobs:
           repository: pushme
     on_failure:
       put: notify
+      no_get: true
       params:
         channel:  (( grab meta.slack.channel ))
         username: (( grab meta.slack.username ))
@@ -468,7 +464,7 @@ resource_types:
   - name: pull-request
     type: registry-image
     source:
-      repository: teliaoss/github-pr-resource
+      repository: cfcommunity/github-pr-resource
 
 resources:
   - name: image
@@ -494,7 +490,7 @@ resources:
     source:
       access_token: (( grab meta.github.access_token ))
       repository:   (( concat meta.github.owner "/" meta.github.repo ))
-      base_branch:  (( grab meta.github.branch ))
+      base_branch:  (( grab meta.github.pr_base_branch ))
 
   - name: version
     type: semver
