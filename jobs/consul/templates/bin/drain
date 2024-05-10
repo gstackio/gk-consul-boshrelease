@@ -8,13 +8,18 @@ function prepend_datetime() {
         '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
 }
 
+readonly JOB_NAME="consul"
+readonly \
+    JOB_DIR="/var/vcap/jobs/${JOB_NAME}" \
+    LOG_DIR="/var/vcap/sys/log/${JOB_NAME}"
+
 # Before redirecting stdout and stderr, copy the file descriptor for original
 # stdout (file desc 1) to file descriptor number 3. That's where where BOSH is
 # expecting an integer, and only that.
 exec \
     3>&1 \
-    1> >(prepend_datetime >> /var/vcap/sys/log/consul/drain.stdout.log) \
-    2> >(prepend_datetime >> /var/vcap/sys/log/consul/drain.stderr.log)
+    1> >(prepend_datetime >> "${LOG_DIR}/drain.stdout.log") \
+    2> >(prepend_datetime >> "${LOG_DIR}/drain.stderr.log")
 
 function output_for_bosh() {
     local exit_code=$?
@@ -32,13 +37,13 @@ trap "output_for_bosh" "EXIT"
 
 if grep -Fq '"persistent_disk":0' <<< "${BOSH_JOB_NEXT_STATE}"; then
     echo "detected 'scale-in' condition, decommissioning Consul node"
-    /var/vcap/jobs/consul/bin/consul leave
+    "${JOB_DIR}/bin/consul" leave
     # NOTE: 'consul leave' is a synchronous client CLI command. It's not
     # fire-and-forget, so we don't need to sleep for 10s here.
     echo "decommissioned Consul node"
 else
     echo "about to go down, draining Consul node"
-    /var/vcap/jobs/consul/bin/consul leave
+    "${JOB_DIR}/bin/consul" leave
     # NOTE: 'consul leave' is a synchronous client CLI command. It's not
     # fire-and-forget, so we don't need to sleep for 10s here.
     echo "drained Consul node"
