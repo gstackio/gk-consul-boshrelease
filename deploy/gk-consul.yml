@@ -152,6 +152,6 @@ releases:
   url: https://s3.eu-west-3.amazonaws.com/gk-consul-boshrelease/compiled-releases/gk-consul/gk-consul-1.7.0-ubuntu-jammy-1.439-20240510-144656-817884567-20240510144658.tgz
   version: 1.7.0
 - name: bpm
-  sha1: 93367b434f29493cc05cc960ca88d34c0a1d3e8d
-  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.2.24
-  version: 1.2.24
+  sha1: 0b595e4bd3162c2f7da8d2d07dbffa1f55581669
+  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.3.0
+  version: 1.3.0
