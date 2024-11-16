@@ -8,8 +8,9 @@
 # ci/settings.yml and override what needs overridden.
 # This uses spruce, so you have some options there.
 #
-# author:  James Hunt <james@niftylogic.com>
-# created: 2016-03-30
+# original author: James Hunt <james@niftylogic.com>
+# created:         2016-03-30
+# maintainer:      Benjamin Gandon (Gstack)
 
 meta:
   name:     (( param "Please name your pipeline" ))
@@ -346,6 +347,7 @@ jobs:
         params:
           bump: patch
       - put: notify
+        no_get: true
         params:
           channel:  (( grab meta.slack.channel ))
           username: (( grab meta.slack.username ))

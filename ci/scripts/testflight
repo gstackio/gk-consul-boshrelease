@@ -4,39 +4,72 @@
 #
 # Script for testing a BOSH release using bosh
 #
-# author:  James Hunt <james@niftylogic.com>
+# original author: James Hunt <james@niftylogic.com>
+# maintainer:      Benjamin Gandon (Gstack)
 
 set -eu
 
-: ${BOSH_ENVIRONMENT:?required}
-: ${BOSH_CA_CERT:?required}
-: ${BOSH_CLIENT:?required}
-: ${BOSH_CLIENT_SECRET:?required}
-: ${BOSH_DEPLOYMENT:?required}
-: ${MANIFEST_PATH:?required}
+: ${REPO_ROOT:?"required"}
+: ${BOSH_ENVIRONMENT:?"required"}
+: ${BOSH_CA_CERT:?"required"}
+: ${BOSH_CLIENT:?"required"}
+: ${BOSH_CLIENT_SECRET:?"required"}
+: ${BOSH_DEPLOYMENT:?"required"}
+: ${MANIFEST_PATH:?"required"}
 IGNORE_GIT_DIRTY_STATE=${IGNORE_GIT_DIRTY_STATE:-""}
-DEBUG=${DEBUG:-}
+DEBUG=${DEBUG:-""}
+SKIP_DEPLOYMENT_CLEANUP_ON_ERROR=${SKIP_DEPLOYMENT_CLEANUP_ON_ERROR:-""}
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-header() {
-	echo
-	echo "###############################################"
-	echo
-	echo $*
-	echo
+function header() {
+    echo
+    echo "###############################################"
+    echo
+    echo $*
+    echo
 }
 
-delete_deployment() {
-	header "Cleaning up deployment..."
-	bosh -n delete-deployment --force
+function pretty_print_bosh_cmd() {
+    echo -n "+"
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == --* ]]; then
+            echo -en "\\n    "
+        else
+            echo -n " "
+        fi
+        echo -n "${arg}"
+    done
+    echo
 }
-trap "echo; echo; echo; sleep 10; delete_deployment" EXIT SIGINT SIGTERM
+
+function destroy_deployment() {
+    header "Cleaning up deployment..."
+    (
+        set -x
+        bosh -n delete-deployment --force
+    )
+}
+
+function cleanup_on_exit() {
+    local is_error=$?
+    echo; echo; echo
+    sleep 10
+    if [[ -n "${SKIP_DEPLOYMENT_CLEANUP_ON_ERROR}" && "${is_error}" -ne 0 ]]; then
+        echo "INFO: leaving deployment as-is" \
+            "(because SKIP_DEPLOYMENT_CLEANUP_ON_ERROR=${SKIP_DEPLOYMENT_CLEANUP_ON_ERROR})"
+    else
+        destroy_deployment
+    fi
+}
+
+trap "cleanup_on_exit" EXIT
 
 
-cd ${REPO_ROOT:?required}
+cd ${REPO_ROOT}
 
 if [[ -f ".gitattributes" ]] && grep -qF "lfs" ".gitattributes"; then
-  git lfs install
+    git lfs install
 fi
 
 header "Pulling in any git submodules..."
@@ -46,8 +79,8 @@ header "Confirming testflight inputs"
 
 echo "Confirming deployment manifest ${MANIFEST_PATH} exists"
 if [[ ! -f ${MANIFEST_PATH} ]]; then
-	echo "Deployment manifest ${MANIFEST_PATH} does not exist"
-	exit 1
+    echo "Deployment manifest ${MANIFEST_PATH} does not exist"
+    exit 1
 fi
 
 echo "Confirming that \$MANIFEST_VARS is valid"
@@ -56,64 +89,103 @@ mkdir -p tmp
 # $MANIFEST_VARS can either be "key: value" or "key=value"
 # and will be converted to "key: value" YAML
 echo "${MANIFEST_VARS:-"{} ---"}" | sed -e "s/ *= */: /g" > tmp/vars.yml
-if [[ ! -z $DEBUG ]]; then
-	echo "Variables passed to deployment manifest:"
-	cat tmp/vars.yml
+if [[ -n "${DEBUG}" ]]; then
+    echo "Variables passed to deployment manifest:"
+    cat --number tmp/vars.yml
 fi
 # convert YAML to JSON to check YAML validity
 spruce json tmp/vars.yml > /dev/null
 
-echo "Confirming each operator file exists: ${MANIFEST_OP_PATHS:-ok, none specified.}"
+echo "Confirming each operator file exists: ${MANIFEST_OP_PATHS:-"ok, none specified."}"
 op_patch_file_errors=
 for op_patch_file in ${MANIFEST_OP_PATHS//,/ } ; do
-	if [[ ! -f $op_patch_file ]]; then
-		op_patch_file_errors=1
-		echo "Operator file missing: ${op_patch_file}"
-	fi
+    if [[ ! -f ${op_patch_file} ]]; then
+        op_patch_file_errors=1
+        echo "ERROR: missing operator file: '${op_patch_file}'"
+    fi
 done
 if [[ ! -z ${op_patch_file_errors} ]]; then
-	exit 1
+    exit 1
 fi
 
 ${script_dir}/wait-until-proxy-bosh-cf-running
 if [[ "${PROXY_IP:-X}" != "X" ]] ; then export BOSH_ALL_PROXY=socks5://localhost:9999 ; fi
 
-delete_deployment
+destroy_deployment
 
 header "Creating candidate BOSH release..."
-bosh -n reset-release # in case dev_releases/ is in repo accidentally
+if [[ -d dev_releases ]]; then
+    # in case dev_releases/ is in repo accidentally
+    if ! findmnt --mountpoint git/blobs > /dev/null; then
+        (
+            set -x
+            bosh -n reset-release
+        )
+    else
+        # When declaring the 'blobs/' directory as cached by Concourse, the
+        # 'blobs/' subdirectory is a mount point.
+        #
+        # First, we want the cache to be kept and not evicted, so we back it up.
+        mkdir -p ../cached-blobs
+        mv blobs/* ../cached-blobs/
+
+        # Then, 'bosh reset-release' might fail at deleting the mounted volume.
+        # This happens when re-running the 'testflight' script in a 'fly hijack'
+        # session. The command still still properly performs the necessary
+        # deletions, so just ignore its error status.
+        (
+            set +e -x
+            bosh -n reset-release
+        )
+
+        # Finally, we restore the contents of the cached directory.
+        mv ../cached-blobs/* blobs/
+    fi
+fi
 
 blobstore_provider=$(bosh int config/final.yml --path /blobstore/provider)
-if [[ ${blobstore_provider} == "s3" && -n ${AWS_ACCESS_KEY} ]]; then
-	cat > config/private.yml <<YAML
+if [[ ${blobstore_provider} == "s3" && -n "${AWS_ACCESS_KEY}" ]]; then
+    cat > config/private.yml <<YAML
 ---
 blobstore:
   options:
     access_key_id: ${AWS_ACCESS_KEY}
-    secret_access_key: ${AWS_SECRET_KEY:?required}
+    secret_access_key: ${AWS_SECRET_KEY:?"required if AWS_ACCESS_KEY set"}
 YAML
 fi
 create_release_args=()
 if [[ "${IGNORE_GIT_DIRTY_STATE:-X}" != "X" \
-    && -n "$(git status --porcelain)" ]]; then
-  create_release_args+=("--force")
+        && -n "$(git status --porcelain)" ]]; then
+    create_release_args+=("--force")
 fi
-bosh create-release "${create_release_args[@]}"
-bosh upload-release --rebase
+(
+    set -x
+    bosh create-release "${create_release_args[@]}"
+    bosh upload-release --rebase
+)
 
-header "Deploying to ${BOSH_ENVIRONMENT}..."
-release_name=$(bosh int config/final.yml --path /final_name 2> /dev/null) \
-  || release_name=$(bosh int config/final.yml --path /name)
-
-header "Choosing cloud-config options"
+header "Generating deployment customizations..."
 vm_type=$(bosh int <(bosh cloud-config) --path /vm_types/0/name)
 disk_type=$(bosh int <(bosh cloud-config) --path /disk_types/0/name)
 network=$(bosh int <(bosh cloud-config) --path /networks/0/name)
 
-release_final_version=$(spruce json dev_releases/*/index.yml | jq -r ".builds[].version" | sed -e "s%+.*%%")
+release_name=$(bosh int config/final.yml --path /final_name 2>/dev/null) \
+    || release_name=$(bosh int config/final.yml --path /name)
+release_final_version=$(
+    spruce json dev_releases/*/index.yml | jq -r ".builds[].version" | sed -e "s%+.*%%"
+)
 release_dev_version="${release_final_version}.latest"
 
-cat > tmp/deployment.yml <<YAML
+echo "Enforced defaults:"
+echo " - deployment name:      ${BOSH_DEPLOYMENT}"
+echo " - main release name:    ${release_name}"
+echo " - main release version: ${release_dev_version}"
+echo " - for all instance groups:"
+echo "   - vm_type:              ${vm_type}"
+echo "   - persistent_disk_type: ${disk_type}"
+echo "   - network[0].name:      ${network}"
+
+cat > tmp/deployment-patches.yml <<YAML
 ---
 - type: replace
   path: /name
@@ -127,11 +199,19 @@ cat > tmp/deployment.yml <<YAML
 YAML
 
 for ig_name in $(spruce json ${MANIFEST_PATH} | jq -r ".instance_groups[].name"); do
-cat >> tmp/deployment.yml <<YAML
+    vm_resources=$(
+        bosh int "${MANIFEST_PATH}" --path "/instance_groups/name=${ig_name}/vm_resources"
+    )
+    if [[ -z "${vm_resources}" ]]; then
+        cat >> tmp/deployment-patches.yml <<YAML
 - type: replace
   path: /instance_groups/name=${ig_name}/vm_type
   value: ${vm_type}
 
+YAML
+    fi
+
+    cat >> tmp/deployment-patches.yml <<YAML
 - type: replace
   path: /instance_groups/name=${ig_name}/networks
   value: [{name: ${network}}]
@@ -139,9 +219,12 @@ cat >> tmp/deployment.yml <<YAML
 YAML
 done
 
-instance_groups_with_persistent_disk_types=$(spruce json $MANIFEST_PATH | jq -r ".instance_groups[] | select(.persistent_disk_type).name")
-for ig_name in $instance_groups_with_persistent_disk_types; do
-	cat >> tmp/deployment.yml <<YAML
+instance_groups_with_persistent_disk_types=$(
+    spruce json ${MANIFEST_PATH} \
+        | jq -r ".instance_groups[] | select(.persistent_disk_type).name"
+)
+for ig_name in ${instance_groups_with_persistent_disk_types}; do
+    cat >> tmp/deployment-patches.yml <<YAML
 - type: replace
   path: /instance_groups/name=${ig_name}/persistent_disk_type
   value: ${disk_type}
@@ -149,32 +232,43 @@ for ig_name in $instance_groups_with_persistent_disk_types; do
 YAML
 done
 
-op_patch_files_flags=""
+header "Rendering deployment manifest..."
+
+op_patch_files_args=()
 for op_patch_file in ${MANIFEST_OP_PATHS//,/ } ; do
-   op_patch_files_flags="${op_patch_files_flags} -o $op_patch_file"
+     op_patch_files_args+=(--ops-file "${op_patch_file}")
 done
 
-set -x
+bosh_int_cmd=(
+    bosh interpolate ${MANIFEST_PATH} \
+        --ops-file tmp/deployment-patches.yml \
+        "${op_patch_files_args[@]}" \
+        --vars-store tmp/creds.yml \
+        --vars-file tmp/vars.yml \
+        --var-errs
+)
+pretty_print_bosh_cmd >&2 "${bosh_int_cmd[@]}" "> tmp/manifest.yml"
+"${bosh_int_cmd[@]}" > tmp/manifest.yml
 
-bosh int ${MANIFEST_PATH} \
-  -o tmp/deployment.yml    \
-  ${op_patch_files_flags}            \
-  --vars-store tmp/creds.yml \
-  --vars-file  tmp/vars.yml  \
-  --var-errs \
-    > tmp/manifest.yml
+header "Deploying to ${BOSH_ENVIRONMENT}..."
+(
+    set -x
+    bosh -n deploy tmp/manifest.yml
+)
 
-bosh -n deploy tmp/manifest.yml
-
-TEST_ERRAND=${TEST_ERRAND:-} # backwards compatibility
-TEST_ERRANDS=${TEST_ERRANDS:-$TEST_ERRAND}
-if [[ -n ${TEST_ERRANDS} ]]; then
-	for errand in ${TEST_ERRANDS}; do
-		header "Running '${errand}' errand"
-		bosh -n run-errand ${errand}
-	done
+header "Running test errands..."
+TEST_ERRAND=${TEST_ERRAND:-""} # backwards compatibility
+TEST_ERRANDS=${TEST_ERRANDS:-"${TEST_ERRAND}"}
+if [[ -z "${TEST_ERRANDS}" ]]; then
+    echo "No test errands specified, skipping."
 else
-	echo "No test errands specified, skipping."
+    for errand in ${TEST_ERRANDS}; do
+        header "Running '${errand}' errand"
+        (
+            set -x
+            bosh -n run-errand "${errand}"
+        )
+    done
 fi
 
 echo
