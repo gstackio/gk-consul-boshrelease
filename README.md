@@ -164,9 +164,9 @@ This is a modern BOSH Release for Consul. This implies several design choices.
 
 
 
-## Author and License
+## Authors and License
 
-Copyright © 2019, Benjamin Gandon, Gstack
+Copyright © 2019-present, Benjamin Gandon, Gstack
 
 Like the rest of BOSH, this Gstack Consul BOSH Release is released under the
 terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
